@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordCraft - Interactive Word Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #9333ea 0%, #2563eb 50%, #06b6d4 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 700px;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #1f2937;
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card:nth-child(2) {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .stat-card:nth-child(3) {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+        }
+
+        .stat-card:nth-child(4) {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+
+        .game-area {
+            background: linear-gradient(to right, #f5f3ff 0%, #eff6ff 100%);
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .game-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .game-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+
+        .scrambled-word {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #1f2937;
+            letter-spacing: 0.1em;
+            word-break: break-all;
+            margin-bottom: 15px;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .letter-count {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .input-area {
+            margin-top: 30px;
+        }
+
+        input {
+            width: 100%;
+            padding: 20px;
+            font-size: 1.25rem;
+            border: 2px solid #d1d5db;
+            border-radius: 10px;
+            text-align: center;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #8b5cf6;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            padding: 18px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit {
+            flex: 1;
+            background: linear-gradient(135deg, #8b5cf6 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-submit:hover {
+            box-shadow: 0 15px 30px -5px rgba(139, 92, 246, 0.5);
+        }
+
+        .btn-hint {
+            padding: 18px 30px;
+            background: #eab308;
+            color: white;
+        }
+
+        .btn-hint:hover {
+            background: #ca8a04;
+        }
+
+        .message {
+            text-align: center;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            display: none;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .message.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-skip {
+            flex: 1;
+            background: #4b5563;
+            color: white;
+        }
+
+        .btn-skip:hover {
+            background: #374151;
+        }
+
+        .btn-reset {
+            flex: 1;
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #b91c1c;
+        }
+
+        .achievement {
+            margin-top: 30px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.125rem;
+            animation: pulse 2s infinite;
+            display: none;
+        }
+
+        .achievement.show {
+            display: block;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.02); }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .scrambled-word {
+                font-size: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .game-area {
+                padding: 25px;
+            }
+
+            button {
+                padding: 15px 20px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>WordCraft</h1>
+            <p class="subtitle">Unscramble the word to score points!</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="score">0</div>
+                <div class="stat-label">Score</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="attempts">0</div>
+                <div class="stat-label">Attempts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="gamesPlayed">0</div>
+                <div class="stat-label">Games</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="streak">0</div>
+                <div class="stat-label">Streak</div>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="game-info">
+                <div class="game-label">Unscramble this word:</div>
+                <div class="scrambled-word" id="scrambledWord">LOADING</div>
+                <div class="letter-count" id="letterCount">0 letters</div>
+            </div>
+
+            <div class="input-area">
+                <input 
+                    type="text" 
+                    id="userGuess" 
+                    placeholder="Type your answer..."
+                    autocomplete="off"
+                >
+                
+                <div class="button-group">
+                    <button class="btn-submit" id="submitBtn">
+                        <span>Submit Answer</span>
+                    </button>
+                    <button class="btn-hint" id="hintBtn">
+                        <span>💡 Hint</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="message" id="message"></div>
+
+        <div class="action-buttons">
+            <button class="btn-skip" id="skipBtn">
+                <span>🔄 Skip Word</span>
+            </button>
+            <button class="btn-reset" id="resetBtn">
+                <span>🏆 Reset Game</span>
+            </button>
+        </div>
+
+        <div class="achievement" id="achievement">
+            🏆 <span id="achievementText"></span>
+        </div>
+    </div>
+
+    <script>
+        // Word list for the game
+        const wordsList = [
+            'REACT', 'JAVASCRIPT', 'PYTHON', 'CODING', 'DEVELOPER',
+            'ALGORITHM', 'FUNCTION', 'VARIABLE', 'COMPONENT', 'FRONTEND',
+            'BACKEND', 'DATABASE', 'INTERFACE', 'FRAMEWORK', 'APPLICATION',
+            'DEBUGGING', 'COMPILER', 'BOOLEAN', 'ARRAY', 'OBJECT',
+            'STRING', 'INTEGER', 'LOOP', 'CLASS', 'METHOD'
+        ];
+
+        // Game State Management with LocalStorage
+        class GameState {
+            constructor() {
+                this.loadState();
+            }
+
+            loadState() {
+                const saved = localStorage.getItem('wordcraftGame');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    this.currentWord = data.currentWord || '';
+                    this.scrambledWord = data.scrambledWord || '';
+                    this.score = data.score || 0;
+                    this.attempts = data.attempts || 0;
+                    this.gamesPlayed = data.gamesPlayed || 0;
+                    this.hintsUsed = data.hintsUsed || 0;
+                    this.streak = data.streak || 0;
+                    this.highScore = data.highScore || 0;
+                } else {
+                    this.reset();
+                }
+            }
+
+            saveState() {
+                const data = {
+                    currentWord: this.currentWord,
+                    scrambledWord: this.scrambledWord,
+                    score: this.score,
+                    attempts: this.attempts,
+                    gamesPlayed: this.gamesPlayed,
+                    hintsUsed: this.hintsUsed,
+                    streak: this.streak,
+                    highScore: this.highScore
+                };
+                localStorage.setItem('wordcraftGame', JSON.stringify(data));
+            }
+
+            reset() {
+                this.currentWord = '';
+                this.scrambledWord = '';
+                this.score = 0;
+                this.attempts = 0;
+                this.gamesPlayed = 0;
+                this.hintsUsed = 0;
+                this.streak = 0;
+                this.highScore = this.highScore || 0;
+                this.saveState();
+            }
+
+            updateScore(points) {
+                this.score += points;
+                if (this.score > this.highScore) {
+                    this.highScore = this.score;
+                }
+                this.saveState();
+            }
+
+            incrementAttempts() {
+                this.attempts++;
+                this.saveState();
+            }
+
+            incrementGames() {
+                this.gamesPlayed++;
+                this.saveState();
+            }
+
+            incrementStreak() {
+                this.streak++;
+                this.saveState();
+            }
+
+            resetStreak() {
+                this.streak = 0;
+                this.saveState();
+            }
+
+            addHint() {
+                this.hintsUsed++;
+                this.saveState();
+            }
+
+            resetHints() {
+                this.hintsUsed = 0;
+                this.saveState();
+            }
+
+            setCurrentWord(word, scrambled) {
+                this.currentWord = word;
+                this.scrambledWord = scrambled;
+                this.saveState();
+            }
+        }
+
+        // Initialize game state
+        const gameState = new GameState();
+
+        // DOM Elements
+        const elements = {
+            scrambledWord: document.getElementById('scrambledWord'),
+            letterCount: document.getElementById('letterCount'),
+            userGuess: document.getElementById('userGuess'),
+            submitBtn: document.getElementById('submitBtn'),
+            hintBtn: document.getElementById('hintBtn'),
+            skipBtn: document.getElementById('skipBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            message: document.getElementById('message'),
+            achievement: document.getElementById('achievement'),
+            achievementText: document.getElementById('achievementText'),
+            score: document.getElementById('score'),
+            attempts: document.getElementById('attempts'),
+            gamesPlayed: document.getElementById('gamesPlayed'),
+            streak: document.getElementById('streak')
+        };
+
+        // Utility Functions
+        function scrambleWord(word) {
+            const arr = word.split('');
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr.join('');
+        }
+
+        function updateStatsDisplay() {
+            elements.score.textContent = gameState.score;
+            elements.attempts.textContent = gameState.attempts;
+            elements.gamesPlayed.textContent = gameState.gamesPlayed;
+            elements.streak.textContent = gameState.streak;
+        }
+
+        function showMessage(text, type) {
+            elements.message.textContent = text;
+            elements.message.className = `message show ${type}`;
+            setTimeout(() => {
+                elements.message.classList.remove('show');
+            }, 3000);
+        }
+
+        function showAchievement() {
+            if (gameState.streak >= 3) {
+                elements.achievementText.textContent = `🔥 ${gameState.streak} Word Streak!`;
+                elements.achievement.classList.add('show');
+            } else {
+                elements.achievement.classList.remove('show');
+            }
+        }
+
+        function initializeGame() {
+            const randomWord = wordsList[Math.floor(Math.random() * wordsList.length)];
+            let scrambled = scrambleWord(randomWord);
+            
+            // Ensure scrambled word is different from original
+            while (scrambled === randomWord && randomWord.length > 1) {
+                scrambled = scrambleWord(randomWord);
+            }
+            
+            gameState.setCurrentWord(randomWord, scrambled);
+            gameState.resetHints();
+            
+            elements.scrambledWord.textContent = scrambled;
+            elements.letterCount.textContent = `${randomWord.length} letters`;
+            elements.userGuess.value = '';
+            elements.message.classList.remove('show');
+            elements.userGuess.focus();
+        }
+
+        function handleSubmit() {
+            const guess = elements.userGuess.value.trim();
+            
+            if (!guess) {
+                showMessage('Please enter a word!', 'info');
+                return;
+            }
+
+            gameState.incrementAttempts();
+            updateStatsDisplay();
+
+            if (guess.toUpperCase() === gameState.currentWord) {
+                // Calculate points based on hints used
+                const points = Math.max(10 - gameState.hintsUsed * 2, 1);
+                gameState.updateScore(points);
+                gameState.incrementStreak();
+                gameState.incrementGames();
+                
+                updateStatsDisplay();
+                showMessage(`🎉 Correct! +${points} points`, 'success');
+                showAchievement();
+                
+                setTimeout(() => {
+                    initializeGame();
+                }, 1500);
+            } else {
+                gameState.resetStreak();
+                updateStatsDisplay();
+                showMessage('❌ Incorrect! Try again.', 'error');
+                showAchievement();
+            }
+        }
+
+        function showHint() {
+            if (gameState.hintsUsed < 2) {
+                gameState.addHint();
+                const hintLength = Math.min(gameState.hintsUsed, gameState.currentWord.length);
+                showMessage(`💡 Hint: Starts with "${gameState.currentWord.substring(0, hintLength)}"`, 'info');
+            } else {
+                showMessage('No more hints available!', 'info');
+            }
+        }
+
+        function resetGame() {
+            if (confirm('Are you sure you want to reset all stats? This cannot be undone.')) {
+                gameState.reset();
+                updateStatsDisplay();
+                showAchievement();
+                initializeGame();
+                showMessage('Game reset! Good luck!', 'info');
+            }
+        }
+
+        // Event Listeners
+        elements.submitBtn.addEventListener('click', handleSubmit);
+        elements.hintBtn.addEventListener('click', showHint);
+        elements.skipBtn.addEventListener('click', initializeGame);
+        elements.resetBtn.addEventListener('click', resetGame);
+
+        elements.userGuess.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleSubmit();
+            }
+        });
+
+        // Initialize game on load
+        if (gameState.currentWord && gameState.scrambledWord) {
+            // Resume saved game
+            elements.scrambledWord.textContent = gameState.scrambledWord;
+            elements.letterCount.textContent = `${gameState.currentWord.length} letters`;
+            updateStatsDisplay();
+            showAchievement();
+        } else {
+            // Start new game
+            initializeGame();
+        }
+        
+        updateStatsDisplay();
+        elements.userGuess.focus();
+    </script>
+</body>
+</html>
